@@ -1,0 +1,36 @@
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/utc.js"></script>
+
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+  const supabase = createClient( 'https://zbcybbxobdctjrqgxqks.supabase.co' , 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpiY3liYnhvYmRjdGpycWd4cWtzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTE3MjE5NDEsImV4cCI6MjAyNzI5Nzk0MX0.nlkwngVx6Z0s_Clkxjm3S5Q2wtKC_iVKsG-RkA9TqLI' );
+
+  const {data, error} = await supabase.from('data').select('*')
+        .order('created_at', { ascending: false })
+        .limit(1)
+	.single();
+
+  console.log(data);
+
+    console.log(Date.parse(data['created_at']));
+
+    let timestamp = Date.parse(data['created_at']);
+    
+    const timeOptions1 = {
+	hour: 'numeric',
+	minute: '2-digit',
+	second: '2-digit',
+    };
+    
+    
+document.getElementById("temp").innerHTML = data['temperature'].toFixed(2) + 'C';
+document.getElementById("time").innerHTML = dayjs(data['created_at']).format('MMM-DD HH:mm:ss'); 
+  // ...
+</script>
+
+<html>
+    <body>
+	<h1>Temperatura: </h1> <h1 id="temp"></h1>
+	<h1>Tiempo: </h1> <h1 id="time"></h1>
+    </body>
+</html>
