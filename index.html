@@ -6,6 +6,10 @@
 	<link
 		href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
 		rel="stylesheet">
+
+
+	<link rel="icon" type="image/x-icon" href="/favicon.ico">
+	<title>Greenhouse</title>
 </head>
 
 <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
@@ -19,22 +23,13 @@
 	const startOfDayTimestamp = dayjs().startOf('day').toISOString();
 	const endOfDayTimestamp = dayjs().endOf('day').toISOString();
 
-	console.log(startOfDayTimestamp);
-	console.log(endOfDayTimestamp);
-
 	const {data, error} = await supabase.from('data').select('*')
 		.gte("created_at", startOfDayTimestamp)
 		.lte("created_at", endOfDayTimestamp)
 		.order('created_at', {ascending: true});
 
-	console.log(error);
-
-	console.log(data);
-
 	const graph_temp = data.map((element) => element['temperature']);
 	const graph_dates = data.map((element) => dayjs(element['created_at']).format('HH:mm'));
-
-	console.log(graph_temp);
 
 	document.getElementById("temp").innerHTML = data[data.length - 1]['temperature'].toFixed(2) + 'C';
 	document.getElementById("time").innerHTML = dayjs(data[data.length - 1]['created_at']).format('MMM-DD HH:mm:ss');
