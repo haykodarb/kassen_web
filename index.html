@@ -1,36 +1,173 @@
+<html>
+
+<head>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link
+		href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+		rel="stylesheet">
+</head>
+
 <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/utc.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script type="module">
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-  const supabase = createClient( 'https://zbcybbxobdctjrqgxqks.supabase.co' , 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpiY3liYnhvYmRjdGpycWd4cWtzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTE3MjE5NDEsImV4cCI6MjAyNzI5Nzk0MX0.nlkwngVx6Z0s_Clkxjm3S5Q2wtKC_iVKsG-RkA9TqLI' );
+	import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+	const supabase = createClient('https://zbcybbxobdctjrqgxqks.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpiY3liYnhvYmRjdGpycWd4cWtzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTE3MjE5NDEsImV4cCI6MjAyNzI5Nzk0MX0.nlkwngVx6Z0s_Clkxjm3S5Q2wtKC_iVKsG-RkA9TqLI');
 
-  const {data, error} = await supabase.from('data').select('*')
-        .order('created_at', { ascending: false })
-        .limit(1)
-	.single();
+	const startOfDayTimestamp = dayjs().startOf('day').toISOString();
+	const endOfDayTimestamp = dayjs().endOf('day').toISOString();
 
-  console.log(data);
+	console.log(startOfDayTimestamp);
+	console.log(endOfDayTimestamp);
 
-    console.log(Date.parse(data['created_at']));
+	const {data, error} = await supabase.from('data').select('*')
+		.gte("created_at", startOfDayTimestamp)
+		.lte("created_at", endOfDayTimestamp)
+		.order('created_at', {ascending: true});
 
-    let timestamp = Date.parse(data['created_at']);
-    
-    const timeOptions1 = {
-	hour: 'numeric',
-	minute: '2-digit',
-	second: '2-digit',
-    };
-    
-    
-document.getElementById("temp").innerHTML = data['temperature'].toFixed(2) + 'C';
-document.getElementById("time").innerHTML = dayjs(data['created_at']).format('MMM-DD HH:mm:ss'); 
-  // ...
+	console.log(error);
+
+	console.log(data);
+
+	const graph_temp = data.map((element) => element['temperature']);
+	const graph_dates = data.map((element) => dayjs(element['created_at']).format('HH:mm'));
+
+	console.log(graph_temp);
+
+	document.getElementById("temp").innerHTML = data[data.length - 1]['temperature'].toFixed(2) + 'C';
+	document.getElementById("time").innerHTML = dayjs(data[data.length - 1]['created_at']).format('MMM-DD HH:mm:ss');
+
+	const ctx = document.getElementById('temp_chart');
+
+	Chart.defaults.plugins.tooltip.enabled = false;
+	Chart.defaults.font.size = 25;
+
+	new Chart(ctx, {
+		type: 'line',
+		data: {
+			labels: graph_dates,
+			datasets: [{
+				label: 'Temperature',
+				data: graph_temp,
+				borderWidth: 3,
+				pointRadius: 0,
+				borderColor: '#dc8a78',
+			}]
+		},
+		options: {
+			plugins: {
+				tooltip: {
+					enabled: false
+				},
+				legend: {
+					display: false
+				},
+			},
+			scales: {
+				y: {
+					beginAtZero: true
+				},
+				x: {
+					ticks: {
+						maxTicksLimit: 10
+					}
+				}
+			}
+		}
+	});
 </script>
 
-<html>
-    <body>
-	<h1>Temperatura: </h1> <h1 id="temp"></h1>
-	<h1>Tiempo: </h1> <h1 id="time"></h1>
-    </body>
+<body style="background-color: #faf4ed;">
+	<div id="body">
+		<div id="data">
+			<div class="data_row">
+				<p class="name">Temperature
+				<p>
+				<p class="value" id="temp">
+				<p>
+			</div>
+			<div class="data_row">
+				<p class="name">Last update
+				<p>
+				<p class="value" id="time">
+				<p>
+			</div>
+		</div>
+		<canvas id="temp_chart"></canvas>
+	</div>
+</body>
+
+<style>
+	.data_row {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		justify-content: center;
+		margin-top: 0;
+		margin-bottom: 0;
+	}
+
+	.name {
+		height: 100%;
+		background-color: #575279;
+		color: #fff;
+		padding: 10px;
+		margin: 0;
+		height: 5vh;
+		width: 30vw;
+		max-width: 400px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.value {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		background-color: #fff;
+		height: 100%;
+		padding: 10px;
+		margin: 0;
+		height: 5vh;
+		width: 30vw;
+		max-width: 400px;
+	}
+
+	#data {
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+		flex-wrap: wrap;
+		align-items: center;
+		max-width: 1200px;
+		width: 90vw;
+		font-weight: 500;
+		font-size: 2em;
+	}
+
+	#temp_chart {
+		margin-top: 5vh;
+		max-width: 1200px;
+		width: 90vw;
+		max-height: 60vh;
+	}
+
+	#body {
+		font-family: "Poppins", sans-serif;
+		color: #575279;
+		padding-bottom: 5vh;
+		padding-top: 5vh;
+		min-width: 100%;
+		display: flex;
+		flex-direction: column;
+		justify-content: start;
+		align-items: center;
+	}
+</style>
+
+
+
 </html>
